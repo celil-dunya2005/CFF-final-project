@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Builder - Создатель резюме</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+    <style ></style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <div class="header">
+                <h1 data-translate="title">CV Builder</h1>
+                <div class="language-switcher">
+                    <button class="lang-btn active" onclick="changeLanguage('ru')">Русский</button>
+                    <button class="lang-btn" onclick="changeLanguage('en')">English</button>
+                    <button class="lang-btn" onclick="changeLanguage('az')">Azərbaycan</button>
+                </div>
+            </div>
+
+            <div class="photo-section">
+                <div class="photo-upload">
+                    <div class="photo-placeholder" id="photoPlaceholder" onclick="document.getElementById('photoInput').click()">
+                        <span data-translate="addPhoto">Добавить фото</span>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+                </div>
+            </div>
+
+            <form id="cvForm">
+                <div class="form-group">
+                    <label data-translate="fullName">Полное имя:</label>
+                    <input type="text" id="fullName" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="position">Должность:</label>
+                    <input type="text" id="position" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="email">Email:</label>
+                    <input type="email" id="email" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="phone">Телефон:</label>
+                    <input type="tel" id="phone" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="address">Адрес:</label>
+                    <input type="text" id="address" oninput="updatePreview()">
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="summary">О себе:</label>
+                    <textarea id="summary" oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="experience">Опыт работы:</label>
+                    <textarea id="experience" oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="education">Образование:</label>
+                    <textarea id="education" oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="skills">Навыки (через запятую):</label>
+                    <textarea id="skills" oninput="updatePreview()"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label data-translate="languages">Языки:</label>
+                    <textarea id="languages" oninput="updatePreview()"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="preview-section">
+            <div class="cv-preview" id="cvPreview">
+                <div class="cv-header">
+                    <img class="cv-photo" id="cvPhoto" src="/placeholder.svg?height=120&width=120" alt="Photo" style="display: none;">
+                    <div class="cv-info">
+                        <h2 id="previewName" data-translate="sampleName">Ваше имя</h2>
+                        <p id="previewPosition" data-translate="samplePosition">Ваша должность</p>
+                        <p id="previewEmail">email@example.com</p>
+                        <p id="previewPhone">+994 XX XXX XX XX</p>
+                        <p id="previewAddress" data-translate="sampleAddress">Ваш адрес</p>
+                    </div>
+                </div>
+
+                <div class="cv-section">
+                    <h3 data-translate="aboutTitle">О СЕБЕ</h3>
+                    <p id="previewSummary" data-translate="sampleSummary">Краткое описание о себе и своих профессиональных целях.</p>
+                </div>
+
+                <div class="cv-section">
+                    <h3 data-translate="experienceTitle">ОПЫТ РАБОТЫ</h3>
+                    <div id="previewExperience" data-translate="sampleExperience">
+                        <p><strong>Должность</strong> - Компания (2020-2023)</p>
+                        <p>Описание обязанностей и достижений.</p>
+                    </div>
+                </div>
+
+                <div class="cv-section">
+                    <h3 data-translate="educationTitle">ОБРАЗОВАНИЕ</h3>
+                    <div id="previewEducation" data-translate="sampleEducation">
+                        <p><strong>Университет</strong> - Специальность (2016-2020)</p>
+                    </div>
+                </div>
+
+                <div class="cv-section">
+                    <h3 data-translate="skillsTitle">НАВЫКИ</h3>
+                    <div class="skills-grid" id="previewSkills">
+                        <div class="skill-item">JavaScript</div>
+                        <div class="skill-item">HTML/CSS</div>
+                        <div class="skill-item">React</div>
+                    </div>
+                </div>
+
+                <div class="cv-section">
+                    <h3 data-translate="languagesTitle">ЯЗЫКИ</h3>
+                    <div id="previewLanguages" data-translate="sampleLanguages">
+                        <p>Русский - родной</p>
+                        <p>Английский - средний</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary export-btn" onclick="exportToPDF()">
+                <span data-translate="exportPDF">Экспортировать в PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-container">
+            <h3 data-translate="cropPhoto">Обрезать фотографию</h3>
+            <canvas id="cropCanvas" class="crop-canvas"></canvas>
+            <div class="crop-controls">
+                <button class="btn btn-primary" onclick="applyCrop()" data-translate="apply">Применить</button>
+                <button class="btn btn-secondary" onclick="closeCropModal()" data-translate="cancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./main.js"></script>
+</body>
+</html>
